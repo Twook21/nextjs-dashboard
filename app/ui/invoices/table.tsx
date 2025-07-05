@@ -1,8 +1,21 @@
-import Image from 'next/image';
-import { UpdateInvoice, DeleteInvoice } from '@/app/ui/invoices/buttons';
-import InvoiceStatus from '@/app/ui/invoices/status';
-import { formatDateToLocal, formatCurrency } from '@/app/lib/utils';
-import { fetchFilteredInvoices } from '@/app/lib/data';
+import Image from "next/image";
+import { DeleteInvoice } from "@/app/ui/invoices/buttons";
+import InvoiceStatus from "@/app/ui/invoices/status";
+import { formatDateToLocal, formatCurrency } from "@/app/lib/utils";
+import { fetchFilteredInvoices } from "@/app/lib/data";
+import Link from "next/link";
+import { PencilIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+
+export function UpdateInvoice({ id }: { id: string }) {
+  return (
+    <Link
+      href={`/dashboard/invoices/${id}/edit`}
+      className="rounded-md border p-2 hover:bg-gray"
+    >
+      <PencilIcon className="w-5" />
+    </Link>
+  );
+}
 
 export default async function InvoicesTable({
   query,
