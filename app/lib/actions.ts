@@ -4,6 +4,8 @@ import { z } from "zod";
 import { sql } from "@vercel/postgres";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { signIn } from "@/auth";
+import { AuthError } from "next-auth";
 
 const FormSchema = z.object({
   id: z.string(),
@@ -12,6 +14,38 @@ const FormSchema = z.object({
   status: z.enum(["pending", "paid"]),
   date: z.string(),
 });
+
+export async function authenticate(
+  prevState: string | undefined,
+  formData: FormData,
+) {
+  try {
+    console.log('Starting authentication...');
+    console.log('Form data:', Object.fromEntries(formData));
+    
+    await signIn('credentials', formData);
+    
+    console.log('Authentication successful');
+  } catch (error) {
+    console.error('Authentication error:', error);
+    
+    if (error instanceof AuthError) {
+      console.log('AuthError type:', error.type);
+      console.log('AuthError message:', error.message);
+      
+      switch (error.type) {
+        case 'CredentialsSignin':
+          return 'Invalid credentials.';
+        default:
+          return 'Something went wrong.';
+      }
+    }
+    
+    // Log non-AuthError errors
+    console.error('Non-AuthError:', error);
+    throw error;
+  }
+}
 
 const CreateInvoice = FormSchema.omit({ id: true, date: true });
 const UpdateInvoice = FormSchema.omit({ id: true, date: true });
@@ -69,7 +103,7 @@ export async function deleteInvoice(id: string) {
   try {
     await sql`DELETE FROM invoices WHERE id = ${id}`;
     revalidatePath("/dashboar/invoices");
-    return { message : "Deleted Data Invoices."};
+    return { message: "Deleted Data Invoices." };
   } catch (error) {
     return {
       message: "Database Error : Failed to Delete Invoices.",
